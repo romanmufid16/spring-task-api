@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import romanmufid.springmongo.dto.CreateTaskDto;
 import romanmufid.springmongo.dto.TaskResponse;
 import romanmufid.springmongo.entity.Task;
+import romanmufid.springmongo.entity.User;
 import romanmufid.springmongo.repository.TaskRepository;
 
 import java.util.Date;
@@ -26,6 +27,7 @@ public class TaskService {
     private TaskResponse toTaskResponse(Task task) {
         return TaskResponse.builder()
                 .id(task.getId().toString())
+                .userId(task.getUserId().toString())
                 .title(task.getTitle())
                 .description(task.getDescription())
                 .status(task.getStatus())
@@ -33,9 +35,10 @@ public class TaskService {
                 .build();
     }
 
-    public TaskResponse create(CreateTaskDto request) {
+    public TaskResponse create(User user, CreateTaskDto request) {
         validationService.validate(request);
         Task task = new Task();
+        task.setUserId(user.getId());
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
         task.setStatus(request.getStatus() != null ? request.getStatus() : "pending");
@@ -46,8 +49,8 @@ public class TaskService {
         return toTaskResponse(task);
     }
 
-    public List<TaskResponse> list(){
-        List<Task> tasks = taskRepository.findAll();
+    public List<TaskResponse> list(User user) {
+        List<Task> tasks = taskRepository.findAllByUserId(user.getId());
         return tasks.stream().map(this::toTaskResponse).toList();
     }
 

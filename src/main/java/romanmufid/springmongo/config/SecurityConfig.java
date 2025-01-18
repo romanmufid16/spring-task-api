@@ -13,6 +13,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import romanmufid.springmongo.exception.CustomAccessDeniedHandler;
+import romanmufid.springmongo.exception.CustomAuthenticationEntryPoint;
 
 import java.util.List;
 
@@ -26,12 +28,29 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Autowired
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        authorizeRequests -> authorizeRequests.requestMatchers("/auth/**").permitAll().anyRequest()
-                                .authenticated())
+                        authorizeRequests ->
+                                authorizeRequests
+                                        .requestMatchers(
+                                                "/auth/**",
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**"
+                                        )
+                                        .permitAll().anyRequest()
+                                        .authenticated())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                )
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
                         SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

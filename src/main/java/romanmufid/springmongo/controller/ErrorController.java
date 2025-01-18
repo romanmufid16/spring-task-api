@@ -22,4 +22,5 @@ public class ErrorController {
         return ResponseEntity.status(exception.getStatusCode())
                 .body(WebResponse.<String>builder().success(false).errors(exception.getReason()).build());
     }
+
 }
